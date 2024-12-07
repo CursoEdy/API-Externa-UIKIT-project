@@ -23,15 +23,33 @@ class ViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         spiner.isHidden = true
         loading.isHidden = true
-        spiner.startAnimating()
-        loading.text = "Carregando..."
-        
-        
     }
 
     @IBAction func chamar(_ sender: Any) {
         spiner.isHidden = false
         loading.isHidden = false
+        spiner.startAnimating()
+        loading.text = "Carregando..."
+        
+        let queue = DispatchQueue(label: "donwloader")
+        queue.async(execute: {
+            let api = API()
+            api.buscarElemento(completion: {
+                result in
+                DispatchQueue.main.async(execute: {
+                    let statusCode = (result?["statusCode"] as! NSString).integerValue
+                    if(statusCode == 200) {
+                        print(result!)
+                        self.resultado.text = (result?["data"] as? NSDictionary)?["title"] as? String ?? "error"
+                        self.loading.isHidden = true
+                    } else {
+                        self.loading.text = result?["statusCode"] as? String ?? "error"
+                    }
+                    self.spiner.isHidden = true
+                    self.spiner.stopAnimating()
+                })
+            })
+        })
     }
     
 }
